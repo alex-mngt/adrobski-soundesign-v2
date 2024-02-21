@@ -67,7 +67,7 @@ Install necessary project dependencies :
 $ pnpm install
 ```
 
-### Dependency Update
+### Dependency Addition & Update (Optional)
 
 To precisely keep track of the dependencies of this application, each dependency should be added with a specific version number.:
 ```bash
