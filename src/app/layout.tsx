@@ -8,8 +8,9 @@ import "./globals.css";
 const urbanist = Urbanist({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Website title",
-  description: "Website description",
+  title: "Adrobski - Sound Design",
+  description:
+    "Sound Designer & Composer, working with Mekaverse, Blansable, Matteyy, Yoplait, Valorant France...",
 };
 
 type Props = {} & PropsWithChildren;
