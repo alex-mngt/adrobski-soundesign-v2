@@ -1,23 +1,23 @@
 export const debounce = <F extends (...args: any[]) => any>(
-	func: F,
-	wait: number,
+  func: F,
+  wait: number,
 ) => {
-	let timeout: NodeJS.Timeout | null;
+  let timeout: NodeJS.Timeout | null;
 
-	return (...args: Parameters<F>): ReturnType<F> | void => {
-		const later = () => {
-			if (!timeout) {
-				return;
-			}
+  return (...args: Parameters<F>): ReturnType<F> | void => {
+    const later = () => {
+      if (!timeout) {
+        return;
+      }
 
-			clearTimeout(timeout);
-			func(...args);
-		};
+      clearTimeout(timeout);
+      func(...args);
+    };
 
-		if (timeout) {
-			clearTimeout(timeout);
-		}
+    if (timeout) {
+      clearTimeout(timeout);
+    }
 
-		timeout = setTimeout(later, wait);
-	};
+    timeout = setTimeout(later, wait);
+  };
 };

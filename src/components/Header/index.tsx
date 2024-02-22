@@ -33,7 +33,7 @@ export const Header: FC = () => {
       className={clsx(
         "relative",
         "p-4 md:p-8",
-        " justify-between flex items-center"
+        "flex items-center justify-between",
       )}
     >
       <Link className={clsx("md:hidden")} href="/">
@@ -50,19 +50,19 @@ export const Header: FC = () => {
       </button>
       <animated.nav
         className={clsx(
-          "fixed top-0 left-0 z-50 md:static",
+          "fixed left-0 top-0 z-50 md:static",
           "h-dvh w-screen md:h-auto",
-          "flex flex-col justify-center items-center",
+          "flex flex-col items-center justify-center",
           "bg-white md:bg-black",
-          "text-black md:text-white"
+          "text-black md:text-white",
         )}
         style={mobileNavStyles}
       >
         <div
           className={clsx(
-            "absolute top-0 right-0",
-            "h-[40px] p-4 box-content",
-            "flex justify-end items-center"
+            "absolute right-0 top-0",
+            "box-content h-[40px] p-4",
+            "flex items-center justify-end",
           )}
         >
           <animated.button
@@ -76,7 +76,7 @@ export const Header: FC = () => {
         <ul
           className={clsx(
             "lg:w-full",
-            "flex flex-col justify-center items-center gap-6 md:grid md:grid-cols-3 md:gap-16"
+            "flex flex-col items-center justify-center gap-6 md:grid md:grid-cols-3 md:gap-16",
           )}
         >
           <li className={clsx("md:order-2 md:flex md:justify-center")}>
@@ -95,12 +95,12 @@ export const Header: FC = () => {
             <ul
               className={clsx(
                 "flex items-center gap-4 md:gap-6 lg:gap-0",
-                "uppercase font-bold"
+                "font-bold uppercase",
               )}
             >
               <li
                 className={clsx(
-                  "lg:[&+li]:hover:translate-x-5 lg:[&_svg]:hover:opacity-100"
+                  "lg:[&+li]:hover:translate-x-5 lg:[&_svg]:hover:opacity-100",
                 )}
               >
                 <Link
@@ -111,7 +111,7 @@ export const Header: FC = () => {
                   <ArrowUpRight
                     className={clsx(
                       "hidden lg:block",
-                      "lg:opacity-0 transition-all"
+                      "transition-all lg:opacity-0",
                     )}
                   />
                 </Link>
@@ -127,7 +127,7 @@ export const Header: FC = () => {
                   <ArrowUpRight
                     className={clsx(
                       "hidden lg:block",
-                      "lg:opacity-0 transition-all"
+                      "transition-all lg:opacity-0",
                     )}
                   />
                 </Link>
@@ -138,7 +138,7 @@ export const Header: FC = () => {
             <ul
               className={clsx(
                 "flex items-center gap-4 md:justify-end md:gap-6",
-                "md:text-white"
+                "md:text-white",
               )}
             >
               <animated.li

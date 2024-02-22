@@ -32,8 +32,8 @@ const RootLayout: FC<Props> = (props) => {
         className={clsx(
           urbanist.className,
           "min-h-dvh",
-          "bg-black cursor-cell",
-          "text-white"
+          "cursor-cell bg-black",
+          "text-white",
         )}
       >
         <Header />
