@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-unused-vars
 export const debounce = <F extends (...args: any[]) => any>(
   func: F,
   wait: number,
