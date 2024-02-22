@@ -1,6 +1,6 @@
-# WeAreStudio99 Next.js starter
+# Adrobski Soundesign
 
-Welcome to the **WeAreStudio99 Next.js starter** development environment setup guide. This document provides comprehensive instructions to facilitate a smooth and consistent setup across various development environments.
+Welcome to the **adrobski-soundesign** development environment setup guide. This document provides comprehensive instructions to facilitate a smooth and consistent setup across various development environments.
 
 ## Prerequisites
 

@@ -1,7 +1,10 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 
+import { clsx } from "clsx";
 import { Urbanist } from "next/font/google";
 import { FC, PropsWithChildren } from "react";
+
+import { Header } from "@/components/Header";
 
 import "./globals.css";
 
@@ -11,6 +14,11 @@ export const metadata: Metadata = {
   title: "Adrobski - Sound Design",
   description:
     "Sound Designer & Composer, working with Mekaverse, Blansable, Matteyy, Yoplait, Valorant France...",
+  robots: "noindex",
+};
+
+export const viewport: Viewport = {
+  themeColor: "black",
 };
 
 type Props = {} & PropsWithChildren;
@@ -20,7 +28,17 @@ const RootLayout: FC<Props> = (props) => {
 
   return (
     <html lang="en">
-      <body className={urbanist.className}>{children}</body>
+      <body
+        className={clsx(
+          urbanist.className,
+          "min-h-dvh",
+          "bg-black cursor-cell",
+          "text-white"
+        )}
+      >
+        <Header />
+        {children}
+      </body>
     </html>
   );
 };
