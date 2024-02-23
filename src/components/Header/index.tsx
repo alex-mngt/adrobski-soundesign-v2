@@ -7,8 +7,8 @@ import Link from "next/link";
 import { FC } from "react";
 import { ArrowUpRight, Instagram, Menu, Twitter, X } from "react-feather";
 
-import { ResponsiveImage } from "@/components/ResponsiveImage";
 import { Spotify } from "@/components/icons/Spotify";
+import { ResponsiveImage } from "@/components/ResponsiveImage";
 
 import {
   INSTAGRAM_PROFILE_URL,

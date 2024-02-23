@@ -1,6 +1,7 @@
-import { debounce } from "@/lib/utils";
 import { SpringRef, useSpring, useSprings } from "@react-spring/web";
 import { useEffect } from "react";
+
+import { debounce } from "@/lib/utils";
 
 const mobileNavInitState = { x: "var(--mobile-nav-init-x)" };
 const mobileNavEndState = { x: "0" };

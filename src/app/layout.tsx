@@ -1,10 +1,11 @@
-import type { Metadata, Viewport } from "next";
 
 import { clsx } from "clsx";
 import { Urbanist } from "next/font/google";
 import { FC, PropsWithChildren } from "react";
 
 import { Header } from "@/components/Header";
+
+import type { Metadata, Viewport } from "next";
 
 import "./globals.css";
 
