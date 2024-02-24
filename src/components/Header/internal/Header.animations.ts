@@ -1,68 +1,79 @@
-import { SpringRef, useSpring, useSprings } from "@react-spring/web";
+import { useSpring, useSprings } from "@react-spring/web";
 import { useEffect } from "react";
 
-import { debounce } from "@/lib/utils";
-
-const mobileNavInitState = { x: "var(--mobile-nav-init-x)" };
-const mobileNavEndState = { x: "0" };
+const navInitState = { x: "100vw" };
+const mdNavInitState = { x: "0" };
+const navEndState = { x: "0" };
 const closeNavInitState = { scale: 0 };
 const closeNavEndState = { scale: 1 };
-const logosInitState = {
-  opacity: "var(--logo-init-opacity)",
-  y: "var(--logo-init-y)",
-};
-const logosEndState = { opacity: "1", y: "0" };
-
-const getDebouncedHandleResize = (
-  mobileNavApi: SpringRef<any>,
-  closeNavApi: SpringRef<any>,
-  logosApi: SpringRef<any>,
-) =>
-  debounce(() => {
-    mobileNavApi.set(mobileNavInitState);
-    closeNavApi.set(closeNavInitState);
-    logosApi.set(logosInitState);
-  }, 200);
+const socialsInitState = { opacity: 0, y: -12 };
+const mdSocialsInitState = { opacity: 1, y: 0 };
+const socialsEndState = { opacity: 1, y: 0 };
 
 // TODO : Find a way to type animations hooks without loosing
 // the capability to infer 'methods' and 'styles' names
 
 export const useHeaderAnimation = () => {
+  // Init the springs with no opacity because the init states
+  // are dependent on the viewport size which is only accessible
+  // on the first client render
+
   const [mobileNavStyles, mobileNavApi] = useSpring(() => ({
-    from: mobileNavInitState,
+    from: { ...navInitState, opacity: 0 },
   }));
   const [closeNavStyles, closeNavApi] = useSpring(() => ({
-    from: closeNavInitState,
+    from: { ...closeNavInitState, opacity: 0 },
   }));
-  const [logosStyles, logosApi] = useSprings(3, () => ({
-    from: logosInitState,
+  const [socialsStyles, socialsApi] = useSprings(3, () => ({
+    from: { ...socialsInitState, opacity: 0 },
   }));
+
+  // Set the init values depending on the viewport size and
+  // set the opacity back on the elemnts that needs to
+  useEffect(() => {
+    const md = window.matchMedia("(min-width: 768px)").matches;
+
+    mobileNavApi.set(
+      md ? { opacity: 1, ...mdNavInitState } : { opacity: 1, ...navInitState },
+    );
+    closeNavApi.set({ opacity: 1, ...closeNavInitState });
+    socialsApi.set(md ? { ...mdSocialsInitState } : { ...socialsInitState });
+
+    // We can disable this eslint rule on the next line because we
+    // only want to run this code on the first client render
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
-    const debouncedHandleResize = getDebouncedHandleResize(
-      mobileNavApi,
-      closeNavApi,
-      logosApi,
-    );
-    window.addEventListener("resize", debouncedHandleResize);
+    const handleResize = () => {
+      const md = window.matchMedia("(min-width: 768px)").matches;
+
+      mobileNavApi.set(md ? mdNavInitState : navInitState);
+      closeNavApi.set(closeNavInitState);
+      socialsApi.set(md ? mdSocialsInitState : socialsInitState);
+    };
+
+    window.addEventListener("resize", handleResize);
 
     return () => {
-      window.removeEventListener("resize", debouncedHandleResize);
+      window.removeEventListener("resize", handleResize);
     };
-  }, [closeNavApi, logosApi, mobileNavApi]);
+  }, [closeNavApi, socialsApi, mobileNavApi]);
 
   const showMobileNav = () => {
     mobileNavApi.start({
-      from: mobileNavInitState,
+      from: navInitState,
       to: async (next) => {
-        await next(mobileNavEndState);
+        await next(navEndState);
+
         closeNavApi.start({
           from: closeNavInitState,
           to: async (next) => {
             await next(closeNavEndState);
-            logosApi.start((index) => ({
-              from: logosInitState,
-              to: logosEndState,
+
+            socialsApi.start((index) => ({
+              from: socialsInitState,
+              to: socialsEndState,
               delay: index * 100,
             }));
           },
@@ -73,10 +84,11 @@ export const useHeaderAnimation = () => {
 
   const hideMobileNav = () => {
     mobileNavApi.start({
-      from: mobileNavEndState,
+      from: navEndState,
       to: async (next) => {
-        await next(mobileNavInitState);
-        logosApi.set(logosInitState);
+        await next(navInitState);
+
+        socialsApi.set(socialsInitState);
         closeNavApi.set(closeNavInitState);
       },
     });
@@ -90,7 +102,7 @@ export const useHeaderAnimation = () => {
     styles: {
       mobileNavStyles,
       closeNavStyles,
-      logosStyles,
+      socialsStyles,
     },
   };
 };
