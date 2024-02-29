@@ -1,4 +1,3 @@
-
 import { clsx } from "clsx";
 import { Urbanist } from "next/font/google";
 import { FC, PropsWithChildren } from "react";
@@ -9,7 +8,7 @@ import type { Metadata, Viewport } from "next";
 
 import "./globals.css";
 
-const urbanist = Urbanist({ subsets: ["latin"] });
+const fontSans = Urbanist({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
   title: "Adrobski - Sound Design",
@@ -31,10 +30,10 @@ const RootLayout: FC<Props> = (props) => {
     <html lang="en">
       <body
         className={clsx(
-          urbanist.className,
           "min-h-dvh",
-          "cursor-cell bg-black",
-          "text-white",
+          "cursor-cell",
+          "font-sans antialiased",
+          fontSans.variable,
         )}
       >
         <Header />
