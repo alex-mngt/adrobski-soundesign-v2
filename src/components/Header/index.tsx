@@ -23,9 +23,10 @@ export const Header: FC = () => {
   return (
     <header
       className={clsx(
-        "relative",
-        "p-4 md:p-8",
+        "fixed z-50",
+        "w-full p-4 md:p-6",
         "flex items-center justify-between",
+        "bg-black/90 shadow-lg backdrop-blur",
       )}
     >
       <Link className={clsx("md:hidden")} href="/">
@@ -45,7 +46,7 @@ export const Header: FC = () => {
           "fixed left-0 top-0 z-50 md:static",
           "h-dvh w-screen md:h-auto",
           "flex flex-col items-center justify-center",
-          "bg-white md:bg-black",
+          "bg-white md:bg-transparent",
           "text-black md:text-white",
         )}
         style={mobileNavStyles}
@@ -76,7 +77,7 @@ export const Header: FC = () => {
               <ResponsiveImage
                 alt="Adrobski sound design logo"
                 desktopSrc={logo}
-                height={72}
+                height={54}
                 priority
                 quality={100}
                 src={logoBlack}

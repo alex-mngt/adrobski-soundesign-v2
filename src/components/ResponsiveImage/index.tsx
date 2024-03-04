@@ -1,4 +1,4 @@
-import clsx from "clsx";
+import { clsx } from "clsx";
 import Image, { ImageProps, StaticImageData } from "next/image";
 import { FC } from "react";
 

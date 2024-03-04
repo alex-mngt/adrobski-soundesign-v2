@@ -29,7 +29,7 @@ export const useHeaderAnimation = () => {
   }));
 
   // Set the init values depending on the viewport size and
-  // set the opacity back on the elemnts that needs to
+  // set the opacity back on the elements that needs to
   useEffect(() => {
     const md = window.matchMedia("(min-width: 768px)").matches;
 
@@ -61,6 +61,8 @@ export const useHeaderAnimation = () => {
   }, [closeNavApi, socialsApi, mobileNavApi]);
 
   const showMobileNav = () => {
+    document.body.classList.add("locked");
+
     mobileNavApi.start({
       from: navInitState,
       to: async (next) => {
@@ -83,6 +85,8 @@ export const useHeaderAnimation = () => {
   };
 
   const hideMobileNav = () => {
+    document.body.classList.remove("locked");
+
     mobileNavApi.start({
       from: navEndState,
       to: async (next) => {
