@@ -3,7 +3,6 @@
   "rules": {
     "react/jsx-sort-props": "warn",
     "prefer-const": "error",
-    "no-unused-vars": ["error", { "varsIgnorePattern": "^_" }],
     "import/order": [
       "error",
       {
