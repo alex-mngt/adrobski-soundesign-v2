@@ -13,26 +13,30 @@ export const useVideoAnimation = () => {
     from: wrapperInitState,
   }));
 
-  const maximise = () => {
-    videoApi.start({
-      from: videoInitState,
-      to: videoEndState,
-    });
-    wrapperApi.start({
-      from: wrapperInitState,
-      to: wrapperEndState,
-    });
+  const maximise = async () => {
+    return Promise.all([
+      videoApi.start({
+        from: videoInitState,
+        to: videoEndState,
+      }),
+      wrapperApi.start({
+        from: wrapperInitState,
+        to: wrapperEndState,
+      }),
+    ]);
   };
 
-  const minimize = () => {
-    videoApi.start({
-      from: videoEndState,
-      to: videoInitState,
-    });
-    wrapperApi.start({
-      from: wrapperEndState,
-      to: wrapperInitState,
-    });
+  const minimize = async () => {
+    return Promise.all([
+      videoApi.start({
+        from: videoEndState,
+        to: videoInitState,
+      }),
+      wrapperApi.start({
+        from: wrapperEndState,
+        to: wrapperInitState,
+      }),
+    ]);
   };
 
   return {

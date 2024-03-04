@@ -1,13 +1,13 @@
 type HighlightVideoParams = {
-  maximiseVideo: (videoIdx: number) => void;
+  maximiseVideo: (videoIdx: number) => Promise<any>;
   videoIdx: number;
   videoElement: HTMLVideoElement;
 };
 
-export const highlightVideo = (params: HighlightVideoParams) => {
+export const highlightVideo = async (params: HighlightVideoParams) => {
   const { maximiseVideo, videoIdx, videoElement } = params;
 
-  maximiseVideo(videoIdx);
+  await maximiseVideo(videoIdx);
 
   videoElement.play().catch((err) => {
     console.error(err);
@@ -15,15 +15,15 @@ export const highlightVideo = (params: HighlightVideoParams) => {
 };
 
 type MinimizeVideoParams = {
-  minimizeVideo: (videoIdx: number) => void;
+  minimizeVideo: (videoIdx: number) => Promise<any>;
   videoIdx: number;
   videoElement: HTMLVideoElement;
 };
 
-export const fadeVideo = (params: MinimizeVideoParams) => {
+export const fadeVideo = async (params: MinimizeVideoParams) => {
   const { minimizeVideo, videoIdx, videoElement } = params;
 
-  minimizeVideo(videoIdx);
+  await minimizeVideo(videoIdx);
 
   videoElement.pause();
 };
