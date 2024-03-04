@@ -68,17 +68,20 @@ export const useHeaderAnimation = () => {
       to: async (next) => {
         await next(navEndState);
 
+        await new Promise<void>((resolve) => {
+          socialsApi.start((index) => ({
+            from: socialsInitState,
+            to: async (next) => {
+              await next(socialsEndState);
+              resolve();
+            },
+            delay: index * 100,
+          }));
+        });
+
         closeNavApi.start({
           from: closeNavInitState,
-          to: async (next) => {
-            await next(closeNavEndState);
-
-            socialsApi.start((index) => ({
-              from: socialsInitState,
-              to: socialsEndState,
-              delay: index * 100,
-            }));
-          },
+          to: closeNavEndState,
         });
       },
     });
