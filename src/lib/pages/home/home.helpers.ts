@@ -11,14 +11,17 @@ export const highlightVideo = async (params: HighlightVideoParams) => {
 
   await maximiseVideo(videoIdx);
 
-  // Wait for the slide animation to be over before playing on mobile
-  if (window.matchMedia("(max-width: 768px)").matches) {
-    await wait(750);
+  videoElement.muted = false;
+
+  if (window.matchMedia("(max-width: 767px)").matches) {
+    return;
   }
 
+  // if (navigator.userActivation.isActive) {
   videoElement.play().catch((err) => {
     console.error(err);
   });
+  // }
 };
 
 type MinimizeVideoParams = {
@@ -31,6 +34,12 @@ export const fadeVideo = async (params: MinimizeVideoParams) => {
   const { minimizeVideo, videoIdx, videoElement } = params;
 
   await minimizeVideo(videoIdx);
+
+  videoElement.muted = true;
+
+  if (window.matchMedia("(max-width: 767px)").matches) {
+    return;
+  }
 
   videoElement.pause();
 };

@@ -9,7 +9,7 @@ import { muxBlurHash } from "@/lib/mux-blurhash";
 import { HomeContextProvider } from "@/lib/pages/home/home.context";
 
 const Home: FC = async () => {
-  const PLAYBACK_ID = "S83YV00pX1bOSIK7MHe9CaySxNffZdbKveqtJbVM98gE";
+  const PLAYBACK_ID = "wFr2f028ZtmTWMxZxcrzjoIxhanoYYJO2L4q7pfGUCjM";
 
   return (
     <main className={clsx("mx-auto max-w-screen-xl")}>

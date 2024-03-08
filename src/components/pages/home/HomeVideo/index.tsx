@@ -11,6 +11,7 @@ import {
   use,
   useEffect,
   useRef,
+  useState,
 } from "react";
 import { useInView } from "react-intersection-observer";
 
@@ -33,6 +34,8 @@ type Props = {
 
 export const HomeVideo: FC<Props> = (props) => {
   const { playbackId, idx, placeholder, forceRender } = props;
+
+  const [autoplay, setAutoplay] = useState(true);
 
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -137,6 +140,14 @@ export const HomeVideo: FC<Props> = (props) => {
     addVideoMinimizer(minimize);
   }, [addVideoMaximizer, addVideoMinimizer, maximise, minimize]);
 
+  useEffect(() => {
+    if (!window.matchMedia("(min-width: 768px)").matches) {
+      return;
+    }
+
+    setAutoplay(false);
+  }, []);
+
   return (
     <animated.div
       className={clsx(
@@ -159,8 +170,10 @@ export const HomeVideo: FC<Props> = (props) => {
       >
         {(inView || forceRender) && (
           <AnimatedPlayer
+            autoPlay={autoplay}
             className={clsx("h-full w-full object-cover object-center")}
             loop
+            muted
             onClick={handleHighlightVideoClick}
             onLoadStart={handlePopulateItemsOnLoadStart}
             onMouseEnter={handleHighlightVideoMouseEnter}
