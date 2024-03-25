@@ -14,10 +14,20 @@ import { CarouselApi } from "@/components/ui/carousel";
 import { StateSetter } from "@/lib/types";
 
 type HomeContextValue = {
-  addVideoMaximizer: (itemHighlighter: () => Promise<any>) => void;
-  maximiseVideo: (idx: number) => Promise<any>;
-  addVideoMinimizer: (itemMinimizer: () => Promise<any>) => void;
-  minimizeVideo: (idx: number) => Promise<any>;
+  addVideoHighlighter: (
+    itemHighlighter: () => Promise<any>,
+    idx: number,
+  ) => void;
+  addPlayButtonHider: (itemHider: () => Promise<any>, idx: number) => void;
+  highlightVideo: (idx: number) => Promise<any>;
+  hideVideoPlayButton: (idx: number) => Promise<any>;
+  addVideoUnhighlighter: (
+    itemMinimizer: () => Promise<any>,
+    idx: number,
+  ) => void;
+  addPlayButtonShower: (itemShower: () => Promise<any>, idx: number) => void;
+  unhighlightVideo: (idx: number) => Promise<any>;
+  showVideoPlayButton: (idx: number) => Promise<any>;
   selectedVideoIdx: MutableRefObject<number | undefined>;
   videos: MutableRefObject<HTMLVideoElement[]>;
   carouselApi: CarouselApi;
@@ -33,32 +43,60 @@ export const HomeContextProvider: FC<PropsWithChildren> = (props) => {
 
   const [carouselApi, setCarouselApi] = useState<CarouselApi>();
 
-  const videosMaximizer = useRef<Array<() => Promise<any>>>([]);
-  const videosMinimizer = useRef<Array<() => Promise<any>>>([]);
+  const videosHighlighter = useRef<Array<() => Promise<any>>>([]);
+  const videosUnhighlighter = useRef<Array<() => Promise<any>>>([]);
+  const playButtonsHider = useRef<Array<() => Promise<any>>>([]);
+  const playButtonsShower = useRef<Array<() => Promise<any>>>([]);
   const selectedVideoIdx = useRef<number | undefined>(undefined);
   const videos = useRef<Array<HTMLVideoElement>>([]);
 
-  const addVideoMaximizer = (itemHighlighter: () => Promise<any>) => {
-    videosMaximizer.current.push(itemHighlighter);
+  const addVideoHighlighter = (
+    itemHighlighter: () => Promise<any>,
+    idx: number,
+  ) => {
+    videosHighlighter.current[idx] = itemHighlighter;
   };
 
-  const addVideoMinimizer = (itemMinimizer: () => Promise<any>) => {
-    videosMinimizer.current.push(itemMinimizer);
+  const addPlayButtonHider = (itemHider: () => Promise<any>, idx: number) => {
+    playButtonsHider.current[idx] = itemHider;
   };
 
-  const maximiseVideo = async (idx: number) => {
-    return videosMaximizer.current[idx]();
+  const addVideoUnhighlighter = (
+    itemMinimizer: () => Promise<any>,
+    idx: number,
+  ) => {
+    videosUnhighlighter.current[idx] = itemMinimizer;
   };
 
-  const minimizeVideo = async (idx: number) => {
-    return videosMinimizer.current[idx]();
+  const addPlayButtonShower = (itemShower: () => Promise<any>, idx: number) => {
+    playButtonsShower.current[idx] = itemShower;
+  };
+
+  const highlightVideo = async (idx: number) => {
+    return videosHighlighter.current[idx]();
+  };
+
+  const hideVideoPlayButton = async (idx: number) => {
+    return playButtonsHider.current[idx]();
+  };
+
+  const unhighlightVideo = async (idx: number) => {
+    return videosUnhighlighter.current[idx]();
+  };
+
+  const showVideoPlayButton = async (idx: number) => {
+    return playButtonsShower.current[idx]();
   };
 
   const contextValue: HomeContextValue = {
-    addVideoMaximizer,
-    maximiseVideo,
-    addVideoMinimizer,
-    minimizeVideo,
+    addVideoHighlighter,
+    addPlayButtonHider,
+    highlightVideo,
+    hideVideoPlayButton,
+    addVideoUnhighlighter,
+    addPlayButtonShower,
+    unhighlightVideo,
+    showVideoPlayButton,
     selectedVideoIdx,
     videos,
     carouselApi,
