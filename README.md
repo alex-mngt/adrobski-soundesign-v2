@@ -9,7 +9,7 @@ Welcome to the **adrobski-soundesign** development environment setup guide. This
 We use [NVM (Node Version Manager)](https://github.com/nvm-sh/nvm) to ensure a consistent Node.js version. Install NVM and set the Node.js version for this project with :
 
 ```bash
-$ nvm install
+nvm install
 ```
 
 ### Pnpm
@@ -17,19 +17,19 @@ $ nvm install
 Pnpm is the package manager of choice for this project. Make sure you are using at least Node.js 14 _(lts/fermium)_ and then activate it through `corepack` :
 
 ```bash
-$ corepack enable pnpm
+corepack enable pnpm
 ```
 
 To ensure consistent behaviour across all development environments, they should all use the same version of pnpm. That's why an explicit pnpm version is specified in the [package.json](). Check if your pnpm version is matching the one under the `packageManager` property :
 
 ```bash
-$ pnpm -v
+pnpm -v
 ```
 
 If it is not the case, install the corresponding version :
 
 ```bash
-$ corepack install
+corepack install
 ```
 
 ### Visual Studio Code
@@ -41,7 +41,7 @@ Consistency in TypeScript versions is crucial. For VSCode users, ensure that you
 For an enhanced development experience with project-specific editor settings, duplicate `.vscode.sample` as `.vscode` :
 
 ```bash
-$ cp -R .vscode.sample .vscode
+cp -R .vscode.sample .vscode
 ```
 
 ## Getting Started
@@ -54,7 +54,7 @@ Documentation is provided to guide you through the major setup steps.
 Initiate by setting up environment variables. Duplicate `.env.local.sample` as `.env.local`:
 
 ```bash
-$ cp .env.local.sample .env.local
+cp .env.local.sample .env.local
 ```
 
 Amend `.env.local` with your specific configurations.
@@ -64,21 +64,22 @@ Amend `.env.local` with your specific configurations.
 Install necessary project dependencies :
 
 ```bash
-$ pnpm install
+pnpm install
 ```
 
 ### Dependency Addition & Update (Optional)
 
 To precisely keep track of the dependencies of this application, each dependency should be added with a specific version number.:
+
 ```bash
-$ pnpm add <pkg> -E
+pnpm add <pkg> -E
 ```
 
 Also, for easier dependency updating, you should use the pnpm interactive mode :
 
 ```bash
-$ pnpm up -i -L
-``` 
+pnpm up -i -L
+```
 
 ## Running the Application
 
@@ -86,8 +87,8 @@ Execute the app in various modes using :
 
 ```bash
 # Development mode
-$ pnpm dev
+pnpm dev
 
 # Production mode
-$ pnpm start
+pnpm start
 ```
