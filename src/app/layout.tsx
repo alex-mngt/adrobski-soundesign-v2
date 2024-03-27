@@ -1,5 +1,6 @@
 import { clsx } from "clsx";
 import { Urbanist } from "next/font/google";
+import localFont from "next/font/local";
 import { FC, PropsWithChildren } from "react";
 
 import { Header } from "@/components/Header";
@@ -8,6 +9,10 @@ import type { Metadata, Viewport } from "next";
 
 import "./globals.css";
 
+const fragmentGlare = localFont({
+  src: "./fonts/PPFragment-GlareVariable.woff",
+  variable: "--font-fragment-glare",
+});
 const fontSans = Urbanist({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
@@ -34,6 +39,7 @@ const RootLayout: FC<Props> = (props) => {
           "cursor-cell",
           "font-sans antialiased",
           fontSans.variable,
+          fragmentGlare.variable,
         )}
       >
         <Header />
