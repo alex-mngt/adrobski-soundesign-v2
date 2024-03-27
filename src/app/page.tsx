@@ -2,6 +2,7 @@ import { clsx } from "clsx";
 import { FC } from "react";
 
 import { HomeCarousel } from "@/components/pages/home/HomeCarousel";
+import HomeHero from "@/components/pages/home/HomeHero";
 import { HomeVideo } from "@/components/pages/home/HomeVideo";
 import { CarouselContent, CarouselItem } from "@/components/ui/carousel";
 
@@ -28,7 +29,7 @@ const Home: FC = async () => {
                 "flex flex-col items-center justify-center",
               )}
             >
-              <h1>Adrobski Sound Design</h1>
+              <HomeHero />
             </CarouselItem>
             {[...Array(4)].map(async (_, idx) => (
               <CarouselItem
