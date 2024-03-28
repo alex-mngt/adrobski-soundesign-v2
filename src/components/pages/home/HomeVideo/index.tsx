@@ -12,7 +12,9 @@ import {
   useCallback,
   useEffect,
   useRef,
+  useState,
 } from "react";
+import { createPortal } from "react-dom";
 import { Play } from "react-feather";
 import { useInView } from "react-intersection-observer";
 
@@ -20,12 +22,9 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { HomeContext } from "@/lib/pages/home/home.context";
-import {
-  startVideoInteraction,
-  stopVideoInteraction,
-} from "@/lib/pages/home/home.helpers";
-import { isVideoPlaying } from "@/lib/utils";
+import { isVideoPlaying, pauseVideo, playVideo } from "@/lib/utils";
 
+import { HomeVideoData } from "./HomeVideoData";
 import { useVideoAnimation } from "./internal/HomeVideo.animations";
 import s from "./internal/HomeVideo.module.scss";
 
@@ -34,6 +33,13 @@ const AnimatedPlayer = animated(Player);
 const AnimatedPlayButton = animated(Button);
 
 type Props = {
+  title: string;
+  artist: {
+    name: string;
+    profileUrl: string;
+  };
+  url: string;
+  dateStringISO8601: string;
   playbackId: string;
   idx: number;
   placeholder?: string;
@@ -41,10 +47,22 @@ type Props = {
 };
 
 export const HomeVideo: FC<Props> = (props) => {
-  const { playbackId, idx, placeholder, forceRender } = props;
+  const {
+    title,
+    artist,
+    dateStringISO8601,
+    playbackId,
+    idx,
+    placeholder,
+    forceRender,
+    url,
+  } = props;
+
+  const [dataAvailable, setDataAvailable] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const dataRef = useRef<HTMLElement>(null);
 
   const { ref: wrapperIntersectionRef, inView } = useInView({
     triggerOnce: true,
@@ -64,15 +82,22 @@ export const HomeVideo: FC<Props> = (props) => {
     carouselApi,
     addVideoHighlighter,
     addVideoUnhighlighter,
-    addPlayButtonHider,
-    addPlayButtonShower,
+    addVideoPlayButtonHider,
+    addVideoPlayButtonShower,
+    addVideoDataShower,
     unhighlightVideo,
     showVideoPlayButton,
+    hideVideoData,
   } = use(HomeContext) ?? {};
 
   const { styles, methods } = useVideoAnimation();
   const { highlight, unhighlight, hidePlayButton, showPlayButton } = methods;
   const { videoStyles, wrapperStyles, playButtonStyles } = styles;
+
+  const moveInfosAlongCursor = (e: MouseEvent) => {
+    // console.log(e);
+    // console.log(dataRef.current);
+  };
 
   const handlePlayerPointerEnter: MouseEventHandler<HTMLVideoElement> = (e) => {
     if (!selectedVideoIdx) {
@@ -85,11 +110,10 @@ export const HomeVideo: FC<Props> = (props) => {
     }
 
     highlight();
+    playVideo(e.currentTarget);
     selectedVideoIdx.current = idx;
 
-    startVideoInteraction({
-      videoElement: e.currentTarget,
-    });
+    wrapperRef.current?.addEventListener("mousemove", moveInfosAlongCursor);
   };
 
   const handlePlayerPointerLeave: MouseEventHandler<HTMLVideoElement> = (e) => {
@@ -103,11 +127,10 @@ export const HomeVideo: FC<Props> = (props) => {
     }
 
     unhighlight();
+    pauseVideo(e.currentTarget);
     selectedVideoIdx.current = undefined;
 
-    stopVideoInteraction({
-      videoElement: e.currentTarget,
-    });
+    wrapperRef.current?.removeEventListener("mousemove", moveInfosAlongCursor);
   };
 
   const handlePlayerClick: MouseEventHandler<HTMLVideoElement> = () => {
@@ -115,6 +138,7 @@ export const HomeVideo: FC<Props> = (props) => {
       !carouselApi ||
       !unhighlightVideo ||
       !showVideoPlayButton ||
+      !hideVideoData ||
       !videos ||
       !selectedVideoIdx
     ) {
@@ -138,8 +162,9 @@ export const HomeVideo: FC<Props> = (props) => {
         const prevVideoElement = videos.current[prevVideoIdx];
 
         if (isVideoPlaying(prevVideoElement)) {
+          pauseVideo(prevVideoElement);
           showVideoPlayButton(prevVideoIdx);
-          stopVideoInteraction({ videoElement: prevVideoElement });
+          hideVideoData(prevVideoIdx);
         }
 
         unhighlightVideo(prevVideoIdx);
@@ -155,10 +180,13 @@ export const HomeVideo: FC<Props> = (props) => {
     carouselApi.scrollTo(idx + 1);
   };
 
-  const handlePlayButtonClick: MouseEventHandler<HTMLButtonElement> = () => {
+  const handlePlayButtonClick: MouseEventHandler<
+    HTMLButtonElement
+  > = async () => {
     if (
       !unhighlightVideo ||
       !showVideoPlayButton ||
+      !hideVideoData ||
       !videos ||
       !selectedVideoIdx
     ) {
@@ -172,8 +200,9 @@ export const HomeVideo: FC<Props> = (props) => {
       const prevVideoElement = videos.current[prevVideoIdx];
 
       if (isVideoPlaying(prevVideoElement)) {
+        pauseVideo(prevVideoElement);
         showVideoPlayButton(prevVideoIdx);
-        stopVideoInteraction({ videoElement: prevVideoElement });
+        await hideVideoData(prevVideoIdx);
       }
 
       if (prevVideoIdx !== idx) {
@@ -189,11 +218,8 @@ export const HomeVideo: FC<Props> = (props) => {
 
     hidePlayButton();
     wrapperRef.current?.classList.add(s["home-video--clear"]);
-    startVideoInteraction({
-      videoElement,
-    });
-
-    selectedVideoIdx.current = idx;
+    appendDataToDOM();
+    playVideo(videoElement);
   };
 
   // Not perfect, maybe find a way to populate videos as soon as videoRef.current gets not null
@@ -209,21 +235,35 @@ export const HomeVideo: FC<Props> = (props) => {
     if (
       !addVideoHighlighter ||
       !addVideoUnhighlighter ||
-      !addPlayButtonHider ||
-      !addPlayButtonShower
+      !addVideoPlayButtonShower ||
+      !addVideoPlayButtonHider ||
+      !addVideoDataShower
     ) {
       return;
     }
 
+    const showData = async () => {
+      appendDataToDOM();
+    };
+
     addVideoHighlighter(highlight, idx);
-    addPlayButtonHider(hidePlayButton, idx);
     addVideoUnhighlighter(unhighlight, idx);
-    addPlayButtonShower(showPlayButton, idx);
+    addVideoPlayButtonShower(showPlayButton, idx);
+    addVideoPlayButtonHider(hidePlayButton, idx);
+    addVideoDataShower(showData, idx);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const appendDataToDOM = () => {
+    setDataAvailable(true);
+  };
+
+  const removeDataFromDOM = () => {
+    setDataAvailable(false);
+  };
+
   return (
-    <animated.div
+    <animated.article
       className={clsx(
         s["home-video"],
         "relative",
@@ -236,6 +276,15 @@ export const HomeVideo: FC<Props> = (props) => {
         backgroundImage: `url(${placeholder})`,
       }}
     >
+      <HomeVideoData
+        artist={artist}
+        className={clsx("absolute opacity-0 lg:opacity-100")}
+        dateStringISO8601={dateStringISO8601}
+        idx={idx}
+        reference={dataRef}
+        title={title}
+        url={url}
+      />
       <Suspense
         fallback={
           <div className={clsx("h-full w-full bg-background")}>
@@ -273,7 +322,6 @@ export const HomeVideo: FC<Props> = (props) => {
               onPointerLeave={handlePlayerPointerLeave}
               playbackId={playbackId}
               playsInline
-              // poster={`https://image.mux.com/${playbackId}/thumbnail.png?time=0`}
               preload="metadata"
               ref={videoRef}
               streamType="on-demand"
@@ -289,6 +337,23 @@ export const HomeVideo: FC<Props> = (props) => {
           </>
         )}
       </Suspense>
-    </animated.div>
+      {dataAvailable &&
+        createPortal(
+          <HomeVideoData
+            artist={artist}
+            className={clsx(
+              "fixed bottom-4 left-4 z-40",
+              "w-[calc(100%-2rem)]",
+            )}
+            dateStringISO8601={dateStringISO8601}
+            idx={idx}
+            portalRendered
+            removeDataFromDOM={removeDataFromDOM}
+            title={title}
+            url={url}
+          />,
+          document.body,
+        )}
+    </animated.article>
   );
 };

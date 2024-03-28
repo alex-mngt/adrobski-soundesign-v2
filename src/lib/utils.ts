@@ -14,3 +14,17 @@ export const isVideoPlaying = (videoElement: HTMLVideoElement) => {
     !videoElement.paused && !videoElement.ended && videoElement.currentTime > 0
   );
 };
+
+export const playVideo = (videoElement: HTMLVideoElement) => {
+  if (videoElement.readyState < videoElement.HAVE_METADATA) {
+    return;
+  }
+
+  videoElement.play().catch((err) => {
+    console.error(err);
+  });
+};
+
+export const pauseVideo = (videoElement: HTMLVideoElement) => {
+  videoElement.pause();
+};

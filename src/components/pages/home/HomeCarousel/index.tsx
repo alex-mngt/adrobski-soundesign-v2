@@ -6,8 +6,7 @@ import { FC, PropsWithChildren, use, useEffect } from "react";
 import { Carousel } from "@/components/ui/carousel";
 
 import { HomeContext } from "@/lib/pages/home/home.context";
-import { stopVideoInteraction } from "@/lib/pages/home/home.helpers";
-import { isVideoPlaying } from "@/lib/utils";
+import { isVideoPlaying, pauseVideo } from "@/lib/utils";
 
 type Props = {} & PropsWithChildren;
 
@@ -19,13 +18,14 @@ export const HomeCarousel: FC<Props> = (props) => {
     highlightVideo,
     unhighlightVideo,
     showVideoPlayButton,
+    hideVideoData,
     carouselApi,
     setCarouselApi,
     videos,
   } = use(HomeContext) ?? {};
 
   useEffect(() => {
-    if (!carouselApi || !videos || !selectedVideoIdx) {
+    if (!carouselApi || !videos || !selectedVideoIdx || !hideVideoData) {
       return;
     }
 
@@ -43,7 +43,8 @@ export const HomeCarousel: FC<Props> = (props) => {
         const prevVideoElement = videos.current[prevVideoIdx];
 
         if (isVideoPlaying(prevVideoElement)) {
-          stopVideoInteraction({ videoElement: prevVideoElement });
+          pauseVideo(prevVideoElement);
+          hideVideoData(prevVideoIdx);
           showVideoPlayButton(prevVideoIdx);
         }
 
@@ -62,6 +63,7 @@ export const HomeCarousel: FC<Props> = (props) => {
     });
   }, [
     carouselApi,
+    hideVideoData,
     highlightVideo,
     selectedVideoIdx,
     showVideoPlayButton,
