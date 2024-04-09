@@ -9,7 +9,6 @@ import {
   MouseEventHandler,
   MutableRefObject,
   ReactEventHandler,
-  Suspense,
   lazy,
   use,
   useCallback,
@@ -22,8 +21,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { Play } from "react-feather";
 import { useInView } from "react-intersection-observer";
 
+import { Spinner } from "@/components/icons/Spinner";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 
 import { HomeContext, MethodCaller } from "@/lib/pages/home/home.context";
 import { isVideoPlaying, pauseVideo, playVideo, throttle } from "@/lib/utils";
@@ -87,6 +86,7 @@ export const HomeVideo: FC<Props> = (props) => {
 
   const [dataAvailable, setDataAvailable] = useState(false);
   const [keyPressed, setKeyPressed] = useState<Key>();
+  const [videoCanPlay, setVideoCanPlay] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const articleRef = useRef<HTMLElement | null>(null);
@@ -339,6 +339,10 @@ export const HomeVideo: FC<Props> = (props) => {
     setDataAvailable(false);
   };
 
+  const enableVideoPlaying = () => {
+    setVideoCanPlay(true);
+  };
+
   const date = DateTime.fromISO(dateStringISO8601);
 
   const backgroundImageSVG = (
@@ -390,57 +394,54 @@ export const HomeVideo: FC<Props> = (props) => {
           backgroundImage: `url('data:image/svg+xml;charset=utf-8,${encodeURIComponent(renderToStaticMarkup(backgroundImageSVG))}')`,
         }}
       >
-        <Suspense
-          fallback={
-            <div className={clsx("absolute inset-0", "bg-background")}>
-              <Skeleton className={clsx("h-full w-full")} />
-            </div>
-          }
+        <AnimatedPlayButton
+          className={clsx("lg:hidden", "absolute inset-0 z-10", "m-auto")}
+          disabled={!videoCanPlay}
+          onClick={handlePlayButtonClick}
+          size="icon"
+          style={playButtonStyles}
+          variant="glass"
         >
-          {inView && (
-            <>
-              <AnimatedPlayButton
-                className={clsx("lg:hidden", "absolute inset-0 z-10", "m-auto")}
-                onClick={handlePlayButtonClick}
-                size="icon"
-                style={playButtonStyles}
-                variant="glass"
-              >
-                <Play
-                  className={clsx("fill-white/90 text-white/90 drop-shadow-sm")}
-                  size={20}
-                />
-              </AnimatedPlayButton>
-              {/* TO REMOVE WHEN SUPPORTED */}
-              {/* @ts-expect-error: missing props onPointerEnterCapture & onPointerLeaveCapture does not exist  */}
-              <AnimatedPlayer
-                disablePictureInPicture
-                disableRemotePlayback
-                loop
-                onClick={handlePlayerClick}
-                onLoadStart={populateItemsOnLoadStart}
-                onPointerEnter={handlePlayerPointerEnter}
-                onPointerLeave={handlePlayerPointerLeave}
-                playbackId={playbackId}
-                playsInline
-                preload="metadata"
-                ref={videoRef}
-                startTime={0.001}
-                streamType="on-demand"
-                style={{
-                  ...videoStyles,
-                  aspectRatio: "1 / 1",
-                  position: "absolute",
-                  inset: 0,
-                  height: "100%",
-                  width: "100%",
-                  objectFit: "cover",
-                  objectPosition: "center",
-                }}
-              />
-            </>
+          {videoCanPlay ? (
+            <Play
+              className={clsx("fill-white/90 text-white/90 drop-shadow-sm")}
+              size={20}
+            />
+          ) : (
+            <Spinner className={clsx("h-5 w-5")} />
           )}
-        </Suspense>
+        </AnimatedPlayButton>
+        {inView && (
+          // TO REMOVE WHEN SUPPORTED
+          // @ts-expect-error: missing props onPointerEnterCapture & onPointerLeaveCapture does not exist
+          <AnimatedPlayer
+            disablePictureInPicture
+            disableRemotePlayback
+            loop
+            minResolution="1080p"
+            onCanPlay={enableVideoPlaying}
+            onClick={handlePlayerClick}
+            onLoadStart={populateItemsOnLoadStart}
+            onPointerEnter={handlePlayerPointerEnter}
+            onPointerLeave={handlePlayerPointerLeave}
+            playbackId={playbackId}
+            playsInline
+            preload="metadata"
+            ref={videoRef}
+            startTime={0.001}
+            streamType="on-demand"
+            style={{
+              ...videoStyles,
+              aspectRatio: "1 / 1",
+              position: "absolute",
+              inset: 0,
+              height: "100%",
+              width: "100%",
+              objectFit: "cover",
+              objectPosition: "center",
+            }}
+          />
+        )}
       </animated.div>
       {dataAvailable &&
         createPortal(
