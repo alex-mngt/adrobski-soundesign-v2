@@ -55,7 +55,8 @@ export const HomeCarousel: FC<Props> = (props) => {
       if (
         highlightVideo &&
         currVideoIdx >= 0 &&
-        currVideoIdx < videos.current.length
+        // Don't check on the first video since the videos RefObject is still empty due to the mux video library lazy loading
+        (currVideoIdx === 0 || currVideoIdx < videos.current.length)
       ) {
         highlightVideo(currVideoIdx);
         selectedVideoIdx.current = currVideoIdx;
