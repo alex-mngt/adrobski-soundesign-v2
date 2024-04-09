@@ -10,7 +10,7 @@ import { muxBlurHash } from "@/lib/mux-blurhash";
 import { HomeContextProvider } from "@/lib/pages/home/home.context";
 
 const Home: FC = async () => {
-  const PLAYBACK_ID = "JfpiyKwYs402CTWG5PoskZ01ODbVC8pEGDt01r4gZkxlGU";
+  const PLAYBACK_ID = "l9vsNmXIROHByUmT01Bk00aR4v8OI7W2mMDhbyG002lew4";
 
   return (
     <>
