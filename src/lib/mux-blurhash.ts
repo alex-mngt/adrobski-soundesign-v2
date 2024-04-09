@@ -53,13 +53,12 @@ const blurHashToBase64 = async (
       height: hashHeight,
     },
   })
-    .jpeg({
-      overshootDeringing: true,
+    .webp({
       quality: 40,
     })
     .toBuffer();
 
-  return `data:image/jpeg;base64,${resizedImageBuf.toString("base64")}`;
+  return `data:image/webp;base64,${resizedImageBuf.toString("base64")}`;
 };
 
 export interface MuxBlurHashOptions {

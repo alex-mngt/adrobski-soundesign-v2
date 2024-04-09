@@ -1,0 +1,14 @@
+.artist-link {
+  position: relative;
+
+  &::after {
+    content: "";
+    @apply absolute;
+    @apply -bottom-1;
+    @apply left-0;
+    @apply w-full;
+    @apply bg-primary;
+    @apply rounded-sm;
+    height: 1.5px;
+  }
+}

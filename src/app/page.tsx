@@ -10,7 +10,7 @@ import { muxBlurHash } from "@/lib/mux-blurhash";
 import { HomeContextProvider } from "@/lib/pages/home/home.context";
 
 const Home: FC = async () => {
-  const PLAYBACK_ID = "5wqCA5o00sGV003GNTG901UcGwqOC3d01dfD1BDx5hG376g";
+  const PLAYBACK_ID = "JfpiyKwYs402CTWG5PoskZ01ODbVC8pEGDt01r4gZkxlGU";
 
   return (
     <>
@@ -42,14 +42,11 @@ const Home: FC = async () => {
                   key={idx}
                 >
                   <HomeVideo
-                    // force the render of the first video since it's HTLMVideoElement
-                    // needs to be available to be played on the user's first slide
                     artist={{
                       name: "Blansable",
                       profileUrl: "https://www.instagram.com/blansable",
                     }}
                     dateStringISO8601="2023-01-03"
-                    forceRender={idx === 0}
                     idx={idx}
                     placeholder={
                       (

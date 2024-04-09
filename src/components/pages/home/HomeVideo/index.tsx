@@ -2,9 +2,12 @@
 
 import { animated } from "@react-spring/web";
 import { clsx } from "clsx";
+import { DateTime } from "luxon";
 import {
   FC,
+  MouseEvent,
   MouseEventHandler,
+  MutableRefObject,
   ReactEventHandler,
   Suspense,
   lazy,
@@ -15,22 +18,48 @@ import {
   useState,
 } from "react";
 import { createPortal } from "react-dom";
+import { renderToStaticMarkup } from "react-dom/server";
 import { Play } from "react-feather";
 import { useInView } from "react-intersection-observer";
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
-import { HomeContext } from "@/lib/pages/home/home.context";
-import { isVideoPlaying, pauseVideo, playVideo } from "@/lib/utils";
+import { HomeContext, MethodCaller } from "@/lib/pages/home/home.context";
+import { isVideoPlaying, pauseVideo, playVideo, throttle } from "@/lib/utils";
 
 import { HomeVideoData } from "./HomeVideoData";
+import { HomeVideoDataDesktop } from "./HomeVideoDataDesktop";
 import { useVideoAnimation } from "./internal/HomeVideo.animations";
-import s from "./internal/HomeVideo.module.scss";
+import { Key } from "./internal/HomeVideo.types";
 
 const Player = lazy(() => import("@mux/mux-video-react"));
 const AnimatedPlayer = animated(Player);
 const AnimatedPlayButton = animated(Button);
+
+type GetThrottledMoveInfosAlongCursorParams = {
+  moveVideoDataDesktop: MethodCaller<[number, number]> | undefined;
+  articleRef: MutableRefObject<HTMLElement | null>;
+  idx: number;
+};
+
+const getThrottledMoveInfosAlongCursor = (
+  params: GetThrottledMoveInfosAlongCursorParams,
+) => {
+  return throttle((e: MouseEvent) => {
+    const { moveVideoDataDesktop, articleRef, idx } = params;
+
+    if (!moveVideoDataDesktop || !articleRef.current) {
+      return;
+    }
+
+    const boundingRect = articleRef.current.getBoundingClientRect();
+    const x = e.clientX - boundingRect.x;
+    const y = e.clientY - boundingRect.y;
+
+    moveVideoDataDesktop(idx, x + 8, y + 8);
+  }, 100);
+};
 
 type Props = {
   title: string;
@@ -43,7 +72,6 @@ type Props = {
   playbackId: string;
   idx: number;
   placeholder?: string;
-  forceRender?: boolean;
 };
 
 export const HomeVideo: FC<Props> = (props) => {
@@ -54,26 +82,26 @@ export const HomeVideo: FC<Props> = (props) => {
     playbackId,
     idx,
     placeholder,
-    forceRender,
     url,
   } = props;
 
   const [dataAvailable, setDataAvailable] = useState(false);
+  const [keyPressed, setKeyPressed] = useState<Key>();
 
   const videoRef = useRef<HTMLVideoElement>(null);
-  const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const articleRef = useRef<HTMLElement | null>(null);
   const dataRef = useRef<HTMLElement>(null);
 
-  const { ref: wrapperIntersectionRef, inView } = useInView({
+  const { ref: articleIntersectionRef, inView } = useInView({
     triggerOnce: true,
   });
 
-  const setWrapperRefs = useCallback(
-    (node: HTMLDivElement) => {
-      wrapperRef.current = node;
-      wrapperIntersectionRef(node);
+  const setArticleRefs = useCallback(
+    (node: HTMLElement) => {
+      articleRef.current = node;
+      articleIntersectionRef(node);
     },
-    [wrapperIntersectionRef],
+    [articleIntersectionRef],
   );
 
   const {
@@ -88,19 +116,46 @@ export const HomeVideo: FC<Props> = (props) => {
     unhighlightVideo,
     showVideoPlayButton,
     hideVideoData,
+    showVideoDataDesktop,
+    hideVideoDataDesktop,
+    moveVideoDataDesktop,
+    clickOnArtistLink,
+    clickOnArtworkLink,
+    OS,
   } = use(HomeContext) ?? {};
 
   const { styles, methods } = useVideoAnimation();
   const { highlight, unhighlight, hidePlayButton, showPlayButton } = methods;
   const { videoStyles, wrapperStyles, playButtonStyles } = styles;
 
-  const moveInfosAlongCursor = (e: MouseEvent) => {
-    // console.log(e);
-    // console.log(dataRef.current);
+  const throttledMoveInfosAlongCursor = getThrottledMoveInfosAlongCursor({
+    moveVideoDataDesktop,
+    articleRef,
+    idx,
+  });
+
+  const detectKeyPressed = (e: KeyboardEvent) => {
+    if (OS === "MacOS") {
+      if (e.key === "Meta") {
+        setKeyPressed("Main");
+      }
+    } else {
+      if (e.key === "Control") {
+        setKeyPressed("Main");
+      }
+    }
+
+    if (e.key === "Alt") {
+      setKeyPressed("Alt");
+    }
+  };
+
+  const resetKeyPressed = () => {
+    setKeyPressed(undefined);
   };
 
   const handlePlayerPointerEnter: MouseEventHandler<HTMLVideoElement> = (e) => {
-    if (!selectedVideoIdx) {
+    if (!selectedVideoIdx || !showVideoDataDesktop) {
       return;
     }
 
@@ -113,11 +168,19 @@ export const HomeVideo: FC<Props> = (props) => {
     playVideo(e.currentTarget);
     selectedVideoIdx.current = idx;
 
-    wrapperRef.current?.addEventListener("mousemove", moveInfosAlongCursor);
+    articleRef.current?.addEventListener(
+      "mousemove",
+      throttledMoveInfosAlongCursor,
+    );
+
+    showVideoDataDesktop(idx);
+
+    document.addEventListener("keydown", detectKeyPressed);
+    document.addEventListener("keyup", resetKeyPressed);
   };
 
   const handlePlayerPointerLeave: MouseEventHandler<HTMLVideoElement> = (e) => {
-    if (!selectedVideoIdx) {
+    if (!selectedVideoIdx || !hideVideoDataDesktop) {
       return;
     }
 
@@ -130,7 +193,16 @@ export const HomeVideo: FC<Props> = (props) => {
     pauseVideo(e.currentTarget);
     selectedVideoIdx.current = undefined;
 
-    wrapperRef.current?.removeEventListener("mousemove", moveInfosAlongCursor);
+    articleRef.current?.removeEventListener(
+      "mousemove",
+      throttledMoveInfosAlongCursor,
+    );
+
+    hideVideoDataDesktop(idx);
+
+    setKeyPressed(undefined);
+    document.removeEventListener("keydown", detectKeyPressed);
+    document.removeEventListener("keyup", resetKeyPressed);
   };
 
   const handlePlayerClick: MouseEventHandler<HTMLVideoElement> = () => {
@@ -145,8 +217,14 @@ export const HomeVideo: FC<Props> = (props) => {
       return;
     }
 
-    // Desktop does not implements on click interactions
-    if (window.matchMedia("(min-width: 1024px)").matches) {
+    // Manual link opening while holding some specific keys on desktop
+    if (window.matchMedia("(min-width: 1024px)").matches && keyPressed) {
+      if (keyPressed === "Main" && clickOnArtistLink) {
+        clickOnArtistLink(idx);
+      } else if (keyPressed === "Alt" && clickOnArtworkLink) {
+        clickOnArtworkLink(idx);
+      }
+
       return;
     }
 
@@ -217,7 +295,6 @@ export const HomeVideo: FC<Props> = (props) => {
     }
 
     hidePlayButton();
-    wrapperRef.current?.classList.add(s["home-video--clear"]);
     appendDataToDOM();
     playVideo(videoElement);
   };
@@ -262,92 +339,115 @@ export const HomeVideo: FC<Props> = (props) => {
     setDataAvailable(false);
   };
 
+  const date = DateTime.fromISO(dateStringISO8601);
+
+  const backgroundImageSVG = (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      xmlnsXlink="http://www.w3.org/1999/xlink"
+    >
+      <filter
+        colorInterpolationFilters="sRGB"
+        filterUnits="userSpaceOnUse"
+        id="blur"
+      >
+        <feGaussianBlur edgeMode="duplicate" stdDeviation="20 20" />
+        <feComponentTransfer>
+          <feFuncA tableValues="1 1" type="discrete" />
+        </feComponentTransfer>
+      </filter>
+      <image
+        filter="url(#blur)"
+        height="100%"
+        width="100%"
+        xlinkHref={placeholder}
+      />
+    </svg>
+  );
+
   return (
     <animated.article
-      className={clsx(
-        s["home-video"],
-        "relative",
-        "w-full overflow-hidden",
-        "aspect-square bg-cover bg-no-repeat",
-      )}
-      ref={setWrapperRefs}
-      style={{
-        ...wrapperStyles,
-        backgroundImage: `url(${placeholder})`,
-      }}
+      className={clsx("relative", "w-full", "aspect-square")}
+      ref={setArticleRefs}
     >
-      <HomeVideoData
+      <HomeVideoDataDesktop
         artist={artist}
-        className={clsx("absolute opacity-0 lg:opacity-100")}
-        dateStringISO8601={dateStringISO8601}
+        date={date}
         idx={idx}
+        keyPressed={keyPressed}
         reference={dataRef}
         title={title}
         url={url}
       />
-      <Suspense
-        fallback={
-          <div className={clsx("h-full w-full bg-background")}>
-            <Skeleton className={clsx("h-full w-full")} />
-          </div>
-        }
-      >
-        {(inView || forceRender) && (
-          <>
-            <AnimatedPlayButton
-              className={clsx(
-                "lg:hidden",
-                "absolute bottom-0 left-0 right-0 top-0 z-10",
-                "m-auto",
-              )}
-              onClick={handlePlayButtonClick}
-              size="icon"
-              style={playButtonStyles}
-              variant="glass"
-            >
-              <Play
-                className={clsx("fill-white/90 text-white/90 drop-shadow-sm")}
-                size={20}
-              />
-            </AnimatedPlayButton>
-            {/* TO REMOVE WHEN SUPPORTED */}
-            {/* @ts-expect-error: missing props onPointerEnterCapture & onPointerLeaveCapture does not exist  */}
-            <AnimatedPlayer
-              disablePictureInPicture
-              disableRemotePlayback
-              loop
-              onClick={handlePlayerClick}
-              onLoadStart={populateItemsOnLoadStart}
-              onPointerEnter={handlePlayerPointerEnter}
-              onPointerLeave={handlePlayerPointerLeave}
-              playbackId={playbackId}
-              playsInline
-              preload="metadata"
-              ref={videoRef}
-              streamType="on-demand"
-              style={{
-                ...videoStyles,
-                aspectRatio: "1 / 1",
-                height: "100%",
-                width: "100%",
-                objectFit: "cover",
-                objectPosition: "center",
-              }}
-            />
-          </>
+      <animated.div
+        className={clsx(
+          "relative",
+          "h-full w-full",
+          "aspect-square overflow-hidden bg-cover bg-center bg-no-repeat",
         )}
-      </Suspense>
+        style={{
+          ...wrapperStyles,
+          backgroundImage: `url('data:image/svg+xml;charset=utf-8,${encodeURIComponent(renderToStaticMarkup(backgroundImageSVG))}')`,
+        }}
+      >
+        <Suspense
+          fallback={
+            <div className={clsx("absolute inset-0", "bg-background")}>
+              <Skeleton className={clsx("h-full w-full")} />
+            </div>
+          }
+        >
+          {inView && (
+            <>
+              <AnimatedPlayButton
+                className={clsx("lg:hidden", "absolute inset-0 z-10", "m-auto")}
+                onClick={handlePlayButtonClick}
+                size="icon"
+                style={playButtonStyles}
+                variant="glass"
+              >
+                <Play
+                  className={clsx("fill-white/90 text-white/90 drop-shadow-sm")}
+                  size={20}
+                />
+              </AnimatedPlayButton>
+              {/* TO REMOVE WHEN SUPPORTED */}
+              {/* @ts-expect-error: missing props onPointerEnterCapture & onPointerLeaveCapture does not exist  */}
+              <AnimatedPlayer
+                disablePictureInPicture
+                disableRemotePlayback
+                loop
+                onClick={handlePlayerClick}
+                onLoadStart={populateItemsOnLoadStart}
+                onPointerEnter={handlePlayerPointerEnter}
+                onPointerLeave={handlePlayerPointerLeave}
+                playbackId={playbackId}
+                playsInline
+                preload="metadata"
+                ref={videoRef}
+                startTime={0.001}
+                streamType="on-demand"
+                style={{
+                  ...videoStyles,
+                  aspectRatio: "1 / 1",
+                  position: "absolute",
+                  inset: 0,
+                  height: "100%",
+                  width: "100%",
+                  objectFit: "cover",
+                  objectPosition: "center",
+                }}
+              />
+            </>
+          )}
+        </Suspense>
+      </animated.div>
       {dataAvailable &&
         createPortal(
           <HomeVideoData
             artist={artist}
-            className={clsx(
-              "fixed bottom-4 left-4 z-40",
-              "w-[calc(100%-2rem)]",
-            )}
-            dateStringISO8601={dateStringISO8601}
+            date={date}
             idx={idx}
-            portalRendered
             removeDataFromDOM={removeDataFromDOM}
             title={title}
             url={url}
