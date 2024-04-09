@@ -6,7 +6,7 @@ import { FC } from "react";
 
 import { Button } from "@/components/ui/button";
 
-import { useSplashScreenAnimation } from "./_internal/HomeSplashScreen.animations";
+import { useSplashScreenAnimation } from "./internal/HomeSplashScreen.animations";
 
 export const HomeSplashScreen: FC = () => {
   const { methods, styles } = useSplashScreenAnimation();

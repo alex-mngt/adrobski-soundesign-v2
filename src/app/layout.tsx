@@ -6,7 +6,7 @@ import { Header } from "@/components/Header";
 
 import type { Metadata, Viewport } from "next";
 
-import "./globals.css";
+import "./globals.scss";
 
 const fontSans = Urbanist({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -31,7 +31,7 @@ const RootLayout: FC<Props> = (props) => {
       <body
         className={clsx(
           "min-h-dvh",
-          "cursor-cell",
+          "cursor-cell overflow-x-hidden",
           "font-sans antialiased",
           fontSans.variable,
         )}
