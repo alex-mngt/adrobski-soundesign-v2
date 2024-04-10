@@ -1,13 +1,13 @@
 "use client";
 
 import { clsx } from "clsx";
+import { UseEmblaCarouselType } from "embla-carousel-react";
 import { FC, PropsWithChildren, use, useEffect } from "react";
 
 import { Carousel } from "@/components/ui/carousel";
 
 import { HomeContext } from "@/lib/pages/home/home.context";
-import { stopVideoInteraction } from "@/lib/pages/home/home.helpers";
-import { isVideoPlaying } from "@/lib/utils";
+import { isVideoPlaying, pauseVideo } from "@/lib/utils";
 
 type Props = {} & PropsWithChildren;
 
@@ -19,17 +19,18 @@ export const HomeCarousel: FC<Props> = (props) => {
     highlightVideo,
     unhighlightVideo,
     showVideoPlayButton,
+    hideVideoData,
     carouselApi,
     setCarouselApi,
     videos,
   } = use(HomeContext) ?? {};
 
   useEffect(() => {
-    if (!carouselApi || !videos || !selectedVideoIdx) {
+    if (!carouselApi || !videos || !selectedVideoIdx || !hideVideoData) {
       return;
     }
 
-    carouselApi.on("select", (api) => {
+    const handleSlideChange = (api: NonNullable<UseEmblaCarouselType[1]>) => {
       // Remove 1 because the first slide is not a video
       const currVideoIdx = api.selectedScrollSnap() - 1;
       const prevVideoIdx = api.previousScrollSnap() - 1;
@@ -43,7 +44,8 @@ export const HomeCarousel: FC<Props> = (props) => {
         const prevVideoElement = videos.current[prevVideoIdx];
 
         if (isVideoPlaying(prevVideoElement)) {
-          stopVideoInteraction({ videoElement: prevVideoElement });
+          pauseVideo(prevVideoElement);
+          hideVideoData(prevVideoIdx);
           showVideoPlayButton(prevVideoIdx);
         }
 
@@ -54,14 +56,22 @@ export const HomeCarousel: FC<Props> = (props) => {
       if (
         highlightVideo &&
         currVideoIdx >= 0 &&
-        currVideoIdx < videos.current.length
+        // Don't check on the first video since the videos RefObject is still empty due to the mux video library lazy loading
+        (currVideoIdx === 0 || currVideoIdx < videos.current.length)
       ) {
         highlightVideo(currVideoIdx);
         selectedVideoIdx.current = currVideoIdx;
       }
-    });
+    };
+
+    carouselApi.on("select", handleSlideChange);
+
+    return () => {
+      carouselApi.off("select", handleSlideChange);
+    };
   }, [
     carouselApi,
+    hideVideoData,
     highlightVideo,
     selectedVideoIdx,
     showVideoPlayButton,
