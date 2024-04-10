@@ -1,6 +1,7 @@
 "use client";
 
 import { clsx } from "clsx";
+import { UseEmblaCarouselType } from "embla-carousel-react";
 import { FC, PropsWithChildren, use, useEffect } from "react";
 
 import { Carousel } from "@/components/ui/carousel";
@@ -29,7 +30,7 @@ export const HomeCarousel: FC<Props> = (props) => {
       return;
     }
 
-    carouselApi.on("select", (api) => {
+    const handleSlideChange = (api: NonNullable<UseEmblaCarouselType[1]>) => {
       // Remove 1 because the first slide is not a video
       const currVideoIdx = api.selectedScrollSnap() - 1;
       const prevVideoIdx = api.previousScrollSnap() - 1;
@@ -61,7 +62,13 @@ export const HomeCarousel: FC<Props> = (props) => {
         highlightVideo(currVideoIdx);
         selectedVideoIdx.current = currVideoIdx;
       }
-    });
+    };
+
+    carouselApi.on("select", handleSlideChange);
+
+    return () => {
+      carouselApi.off("select", handleSlideChange);
+    };
   }, [
     carouselApi,
     hideVideoData,
